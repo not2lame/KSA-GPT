@@ -325,7 +325,7 @@
                             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {data.scriptureLink && (
                                     <a href={data.scriptureLink} target="_blank" className="flex items-center justify-center gap-2 bg-amber-600 text-white py-3 rounded-lg font-medium hover:bg-amber-700 transition">
-                                        <IconBookOpen className="w-4 h-4" /> Read Scripture
+                                        <IconBookOpen className="w-4 h-4" /> Read Scripture: {data.scriptureRef}
                                     </a>
                                 )}
                                 <a href={data.lessonLink} target="_blank" className="flex items-center justify-center gap-2 bg-stone-200 text-stone-700 py-3 rounded-lg font-medium hover:bg-stone-300 transition">
@@ -378,7 +378,7 @@
                              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {data.scriptureLink && (
                                     <a href={data.scriptureLink} target="_blank" className={`flex items-center justify-center gap-2 text-white py-3 rounded-lg font-medium transition ${youthGroup === 'ym' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-pink-500 hover:bg-pink-600'}`}>
-                                        <IconBookOpen className="w-4 h-4" /> Read Scripture
+                                        <IconBookOpen className="w-4 h-4" /> Read Scripture: {data.scriptureRef}
                                     </a>
                                 )}
                                 <a href={data.lessonLink} target="_blank" className="flex items-center justify-center gap-2 bg-stone-200 text-stone-700 py-3 rounded-lg font-medium hover:bg-stone-300 transition">
@@ -458,7 +458,7 @@
                          <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
                             <h1 className="text-3xl font-serif font-bold text-center text-amber-800 mb-2">Discussion Guide</h1>
                             <p className="text-center text-stone-500 mb-8 italic">"{WEEK_INFO.title}"</p>
-
+                            
                             {/* --- ADDED IMAGE HERE --- */}
                             <div className="mb-8">
                                 <img 
