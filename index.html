@@ -43,6 +43,29 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-study-section, #printable-study-section * {
+                visibility: visible;
+            }
+            #printable-study-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 h-screen flex flex-col overflow-hidden">
@@ -192,6 +215,7 @@
         const IconChevronRight = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>;
         const IconLink = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>;
         const IconPlayCircle = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>;
+        const IconPrinter = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>;
 
 
         // ==========================================
@@ -210,7 +234,7 @@
             if (!show) return null;
 
             return (
-                <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 animate-bounce">
+                <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 animate-bounce toast-notification">
                     <span className="text-green-400">&#10003;</span>
                     {message}
                 </div>
@@ -347,7 +371,7 @@
             const renderYouth = () => {
                 const data = getActiveData(youthGroup === 'ym' ? YM_DATA : YW_DATA);
                 return (
-                    <div className="fade-in max-w-2xl mx-auto">
+                    <div className="fade-in max-w-3xl mx-auto">
                         {/* Toggle Switch for YM/YW */}
                         <div className="flex justify-center mb-6 bg-stone-200 p-1 rounded-xl inline-flex w-full sm:w-auto mx-auto">
                             <button 
@@ -399,7 +423,7 @@
             const renderSongs = () => {
                 const data = getActiveData(SONGS_DATA);
                 return (
-                    <div className="fade-in max-w-2xl mx-auto">
+                    <div className="fade-in max-w-3xl mx-auto">
                          <div className="text-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200 mb-6">
                             <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <IconMusic className="w-6 h-6 text-amber-700" />
@@ -455,8 +479,22 @@
             const renderStudy = () => {
                 return (
                     <div className="fade-in max-w-6xl mx-auto pb-12">
-                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
-                            <h1 className="text-3xl font-serif font-bold text-center text-amber-800 mb-2">Discussion Guide</h1>
+                         <div id="printable-study-section" className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 relative">
+                            
+                            <div className="flex justify-between items-start mb-2">
+                                 <div className="w-full">
+                                    <h1 className="text-3xl font-serif font-bold text-center text-amber-800">Discussion Guide</h1>
+                                 </div>
+                                 <button 
+                                    onClick={() => window.print()} 
+                                    className="no-print absolute top-6 right-6 text-stone-400 hover:text-stone-600 hover:bg-stone-100 p-2 rounded-full transition-all"
+                                    aria-label="Print Discussion Guide"
+                                    title="Print Discussion Guide"
+                                >
+                                    <IconPrinter className="w-6 h-6" />
+                                </button>
+                            </div>
+
                             <p className="text-center text-stone-500 mb-8 italic">"{WEEK_INFO.title}"</p>
                             
                             {/* --- ADDED IMAGE HERE --- */}
