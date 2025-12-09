@@ -3,625 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Come, Follow Me Companion</title>
-    
-    <!-- Tailwind CSS (Styling) -->
+    <title>Multi-Discipline KSA Generator (OpenAI)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fonts: Inter (Body) and Merriweather (Headings) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <!-- React & ReactDOM (Switched to Cloudflare CDN for better firewall access) -->
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel (to compile JSX in browser) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-
-    <!-- Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Merriweather', 'serif'],
-                    },
-                    colors: {
-                        stone: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c', 800: '#292524', 900: '#1c1917' },
-                        amber: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Print Styles */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-study-section, #printable-study-section * {
-                visibility: visible;
-            }
-            #printable-study-section {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                border: none;
-                box-shadow: none;
-            }
-            .no-print {
-                display: none !important;
-            }
+        body { font-family: 'Inter', sans-serif; }
+        .table-container { overflow-x: auto; }
+        th, td { min-width: 150px; }
+        .loader {
+            border: 4px solid #e5e7eb; border-top: 4px solid #10a37f; /* OpenAI Green */
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
         }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-stone-100 text-stone-800 h-screen flex flex-col overflow-hidden">
+<body class="bg-gray-100 text-gray-800">
 
-    <!-- Loading Fallback -->
-    <div id="root" class="h-full flex flex-col">
-        <div class="flex items-center justify-center h-full bg-stone-100 text-stone-500 p-4 text-center">
-            <div>
-                <h2 class="text-xl font-bold mb-2">Loading App...</h2>
-                <p class="text-sm">If this takes longer than a few seconds, your network may be blocking the script libraries (React).</p>
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Multi-Discipline KSA Generator</h1>
+            <p class="text-lg md:text-xl text-gray-600 mt-2">Powered by ChatGPT</p>
+        </header>
+
+        <main>
+            <div id="main-app-screen">
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-3xl mx-auto">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="ksa-selector" class="block text-lg font-medium text-gray-700 mb-2">Select Discipline:</label>
+                            <select id="ksa-selector" class="w-full bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none transition">
+                                <option value="cybersecurity">Cybersecurity</option>
+                                <option value="systems-admin">Systems Administrator</option>
+                                <option value="network-admin">Network Administrator</option>
+                                <option value="project-manager">Project Manager</option>
+                                <option value="desktop-support">Desktop Support</option>
+                                <option value="help-desk">Help Desk</option>
+                                <option value="technical-lead">Technical Lead</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="app-password" class="block text-lg font-medium text-gray-700 mb-2">OpenAI API Key:</label>
+                            <div class="relative">
+                                <input type="password" id="app-password" class="w-full bg-white border border-gray-300 rounded-md pl-4 pr-12 py-2 text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none transition" placeholder="sk-...">
+                                <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+                                    <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    <svg id="eye-slash-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label for="ability-input" class="block text-lg font-medium text-gray-700 mb-2">Enter an Ability:</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="ability-input" class="w-full bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none transition" placeholder="e.g., Perform vulnerability scanning">
+                        <button id="generate-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-gray-500 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center">
+                            <span id="btn-text">Generate</span>
+                            <div id="btn-loader" class="loader w-5 h-5 border-2 border-t-2 hidden ml-2"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="results-container" class="bg-white rounded-lg shadow-2xl p-4 md:p-6 relative">
+                      
+                      <div id="loader" class="flex justify-center py-12 hidden">
+                         <div class="loader"></div>
+                      </div>
+
+                      <div id="error-container" class="text-center py-12 text-red-600 hidden">
+                         <p class="text-xl">An error occurred.</p>
+                         <p id="error-message" class="text-sm text-gray-500 mt-2"></p>
+                      </div>
+
+                      <div id="results-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-4 border-b pb-4">
+                         <h2 id="table-title" class="text-2xl font-bold text-gray-900 mb-2 md:mb-0"></h2>
+                         <button id="copy-btn" class="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition shadow-sm text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            <span id="copy-btn-text">Copy Table to Clipboard</span>
+                         </button>
+                      </div>
+
+                      <div id="table-wrapper" class="table-container hidden">
+                        <table class="w-full text-sm text-left text-gray-700" id="ksa-table">
+                            <thead class="text-xs text-white uppercase bg-gray-800">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Discipline</th>
+                                    <th scope="col" class="px-6 py-3">Level</th>
+                                    <th scope="col" class="px-6 py-3">Role</th>
+                                    <th scope="col" class="px-6 py-3">Knowledge</th>
+                                    <th scope="col" class="px-6 py-3">Skill</th>
+                                    <th scope="col" class="px-6 py-3">Training Source</th>
+                                    <th scope="col" class="px-6 py-3">Training Link</th>
+                                    <th scope="col" class="px-6 py-3">Technical Stack</th>
+                                    <th scope="col" class="px-6 py-3">Description</th>
+                                    <th scope="col" class="px-6 py-3">Demonstration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ksa-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="no-results" class="text-center py-12 text-gray-500">
+                        <p class="text-xl">Enter your API Key, select a discipline, and click "Generate".</p>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-
-        // ==========================================
-        // DATA CONSTANTS
-        // ==========================================
-
-        const WEEK_INFO = {
-            title: "He Has Sealed His Mission and His Works with His Own Blood",
-            dateRange: "November 24 - November 30, 2025",
-            valediction: "May you find safety for your soul as you seal your testimony with faith in the Lord Jesus Christ."
-        };
-
-        const DEVOTIONAL_DATA = [
-            { id: 'monday', day: 'Mon', fullDay: 'Monday', date: 'Nov 24', title: 'Sealed with Blood 🩸', text: 'The martyrdom of Joseph and Hyrum Smith was not merely a tragic end; it was a divine seal upon their work. As we study the closing moments of their lives, we see that they went to Carthage knowing they would not return, yet they submitted to keep the Saints safe. Elder Jeffrey R. Holland powerfully teaches that these men would not have died for a "fictitious" book or a church created out of "whole cloth". Their willingness to die rather than deny the truth stands as an unimpeachable witness of the Restoration.', prompt: 'Reflection: How does the knowledge that Joseph and Hyrum sealed their testimony with their blood strengthen your confidence in the Book of Mormon today?', scriptureRef: 'D&C 135:3', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'tuesday', day: 'Tue', fullDay: 'Tuesday', date: 'Nov 25', title: 'Finding Comfort in the Storm 📖', text: 'It is profound to consider what the Prophet and Patriarch did in their final hours to find peace. While in Carthage Jail, facing imminent death, Hyrum Smith read from the Book of Mormon—specifically Ether chapter 12—to find comfort. The verses he read spoke of charity and the grace of God making weak things strong. If the scriptures could provide peace to prophets facing martyrdom, think of the solace they can offer us in our daily stresses and trials.', prompt: 'Challenge: Read Ether 12:36–38 today and look for the specific words that might have comforted Hyrum’s heart.', scriptureRef: 'D&C 135:5', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p5', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'wednesday', day: 'Wed', fullDay: 'Wednesday', date: 'Nov 26', title: 'The Work Goes On ⏩', text: 'When Joseph Smith fell, enemies of the Church believed the "Mormon" problem was solved. Yet, the martyrdom was not the end of the Restoration; "there was more work to do and more revelation that would guide the Church forward". The end of the Prophet\'s mortal life was merely a transition in the ongoing work of God. Just as the early Saints had to look forward with faith, we are reminded that this is Christ\'s church, and He continues to direct it regardless of the obstacles we face.', prompt: 'Challenge: Read Revelation 6:9-11 for a poignant vision of the martyrs in the spirit world, awaiting the Lord\'s timing.', scriptureRef: 'D&C 135:6', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p6', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'thursday', day: 'Thu', fullDay: 'Thursday', date: 'Nov 27', title: 'A Legacy of Gratitude 🙏', text: 'On this day of Thanksgiving, we have much to be grateful for regarding the Prophet Joseph Smith. Scripture declares that he "has done more, save Jesus only, for the salvation of men in this world, than any other man that ever lived in it". Through him, we received the Book of Mormon, the Doctrine and Covenants, and the ordinances of the temple—gifts that bind us to God and our families for eternity. Our gratitude for the message is often best expressed by how we honor the messenger\'s sacrifice.', prompt: 'Challenge: Share a brief thought at your dinner table or with a friend about one specific truth restored through Joseph Smith that you are thankful for.', scriptureRef: 'D&C 135:3', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'friday', day: 'Fri', fullDay: 'Friday', date: 'Nov 28', title: 'The Journey is the Lesson ⛺', text: 'After the tragedy of Carthage, the Saints faced a grueling 1,300-mile trek west. In Doctrine and Covenants 136, the Lord taught them that "their conduct on the journey was as important as their destination". This revelation transformed a desperate migration into a "shared spiritual experience". We are all on a covenant path; often, the Lord is less concerned with how fast we arrive and more concerned with who we are becoming along the way.', prompt: 'Reflection: What is a current "journey" or trial you are facing? How might the Lord be using this time to refine your character?', scriptureRef: 'D&C 136:31', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p31', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'saturday', day: 'Sat', fullDay: 'Saturday', date: 'Nov 29', title: 'Safety for the Soul ⚓', text: 'Elder Holland reminds us that God "always provides safety for the soul," and through the Book of Mormon, He has done that again in our time. Joseph and Hyrum were willing to die rather than deny the divine origin of that book. Elder Holland asks us to trust that these men would not blaspheme before God in their final hour by fixing their lives to a lie. The Book of Mormon is true, and it is a source of safety and truth for us today.', prompt: 'Reflection: If you haven\'t already accepted Monroni\'s challenge in Moroni 10:3-5, then read the Book of Mormon and ask God if it is true with a sincere heart and real intent.', scriptureRef: 'Moroni 10:3-5', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/bofm/moro/10?lang=eng#3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'sunday', day: 'Sun', fullDay: 'Sunday', date: 'Nov 30', title: 'Accomplishing His Will 🕊️', text: 'As we conclude this week\'s study, we look at the transition of leadership to Brigham Young and the Quorum of the Twelve. Doctrine and Covenants 136 is a reminder that we can "accomplish the Lord\'s will" when we follow His counsel. Whether it is crossing the plains or navigating modern life, the Lord promises that if we are faithful in keeping our covenants, His spirit will guide us. We honor the martyrs not just by remembering their deaths, but by living the gospel they died to restore.', prompt: 'Challenge: Identify one specific piece of counsel from D&C 136 (such as praising the Lord, caring for the poor, or ceasing contention) to focus on this coming week.', scriptureRef: 'D&C 136:42', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p42', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' }
-        ];
-
-        const YM_DATA = [
-             { id: 'monday', day: 'Mon', date: 'Nov 24', title: 'Sealed with Blood 🩸', text: 'When Joseph and Hyrum Smith rode to Carthage, they knew they weren\'t coming back. They didn\'t run away; they faced danger head-on to protect the Saints and seal their testimony of the truth. It takes massive courage to stand by what you know is right when the world is against you. As a holder of the Aaronic Priesthood, you share in the legacy of these men who valued their testimony more than their own lives.', prompt: 'Challenge: Think of a time you defended your beliefs or standards. Write down one sentence in your phone notes about why the gospel is worth fighting for.', scriptureRef: 'D&C 135:1', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p1', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'tuesday', day: 'Tue', date: 'Nov 25', title: '20 Years that Changed the World 🌎', text: 'In just 20 years, Joseph Smith brought forth the Book of Mormon, restored the Priesthood, built temples, and organized the Church. He didn\'t have much money or education, but he had the Lord. It’s proof that God doesn\'t look for "perfect" people; He looks for willing hands. Because of what the Lord did through Joseph, we have priesthood power and the roadmap to return to Heavenly Father.', prompt: 'Reflection: If you had to explain to a friend what Joseph Smith actually did for us, what is the first thing you would mention?', scriptureRef: 'D&C 135:3', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'wednesday', day: 'Wed', date: 'Nov 26', title: 'Calm in the Storm ⛈️', text: 'Imagine sitting in a jail cell, knowing a mob is outside waiting to kill you. What would you do? Hyrum Smith chose to read the scriptures. Specifically, he read from Ether 12 in the Book of Mormon about how God turns weakness into strength. Even in the scariest moment of his life, Hyrum found peace in the word of God. That same power is available to you whenever you are stressed, anxious, or afraid.', prompt: 'Challenge: Read the verses Hyrum read (Ether 12:36-38). Next time you feel stressed this week, open the Book of Mormon instead of social media for just 5 minutes.', scriptureRef: 'D&C 135:5', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p5', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'thursday', day: 'Thu', date: 'Nov 27', title: 'Praise and Gratitude 🙏', text: 'Happy Thanksgiving! In Doctrine and Covenants 136, as the Saints were preparing for a hard trek west, the Lord commanded them to "praise the Lord with singing, with music, with dancing, and with a prayer of praise and thanksgiving." Gratitude isn\'t just for when things are going well; it\'s the fuel that keeps us moving forward during hard journeys. A grateful Priesthood holder is a happy Priesthood holder.', prompt: 'Challenge: In your prayer tonight, try offering a "prayer of praise" where you only thank Heavenly Father for blessings and don\'t ask for anything.', scriptureRef: 'D&C 136:28', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p28', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'friday', day: 'Fri', date: 'Nov 28', title: 'No Man Left Behind 🤝', text: 'When the Saints left Nauvoo, they made a covenant (a promise) that they wouldn\'t leave the poor, the widows, or the fatherless behind. They pledged to use all their "influence and property" to help everyone get to Zion. That is the spirit of the Priesthood! We look out for the guys in our quorum who are struggling, the lonely, and those who need a lift. We move forward together.', prompt: 'Challenge: Send a text to a member of your quorum or a friend you haven\'t seen at church in a while just to check in and see how they are doing.', scriptureRef: 'D&C 136:8-9', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p8', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'saturday', day: 'Sat', date: 'Nov 29', title: 'They Would Not Die for a Lie 📖', text: 'Elder Jeffrey R. Holland once asked a powerful question: Would Joseph and Hyrum continue to fix their lives on a book (The Book of Mormon) if it were a lie? Would they die for something they made up? "They would not do that!" They were willing to die rather than deny the divine truth of that book. Their death is one of the most powerful evidences that the Book of Mormon is truly the word of God.', prompt: 'Reflection: How does the sacrifice of Joseph and Hyrum affect the way you treat your copy of the Book of Mormon?', scriptureRef: 'D&C 135:6', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p6', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'sunday', day: 'Sun', date: 'Nov 30', title: 'Your Personal Liahona 🧭', text: 'The Saints needed direction to cross the plains, but we need direction to navigate life today. Just as the Lord guided them, He wants to guide you. This is a great time to think about your Patriarchal Blessing. Prophets have called it your "personal scripture" and a "personal Liahona." If you haven\'t received yours yet, now is the time to prepare. It will help you see who you really are and who you can become.', prompt: 'Challenge: If you have your Patriarchal Blessing, read it today. If you don\'t, talk to your parents or Bishop today about what you need to do to get it.', scriptureRef: 'D&C 136:19', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p19', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' }
-        ];
-
-        const YW_DATA = [
-            { id: 'monday', day: 'Mon', date: 'Nov 24', title: 'Sealed with Courage ❤️‍🔥', text: 'Have you ever wondered if you could stand up for what you believe in when it really counts? In the final moments of their lives, Joseph and Hyrum Smith didn\'t run away. As Elder Jeffrey R. Holland taught, men don\'t die for a lie. They were willing to seal their testimony with their blood because they knew the Book of Mormon was true. Their courage reminds us that because the gospel is true, we can be brave in our own daily battles, too.', prompt: 'Challenge: Is there a standard (like modesty, language, or honesty) that is hard for you to keep right now? Pray for the courage to "seal" your commitment to it today, just for one day.', scriptureRef: 'D&C 135:3', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'tuesday', day: 'Tue', date: 'Nov 25', title: 'Comfort in the Pages 📖', text: 'When Joseph and Hyrum were in Carthage Jail, facing imminent danger, what did they do to find peace? They didn\'t panic; they read the Book of Mormon. Specifically, they read words of comfort from the prophet Moroni. If the prophet of the Restoration turned to the scriptures for peace in his darkest hour, think of how much power those same pages hold for your bad days, test anxieties, or loneliness.', prompt: 'Reflection: Keep your scriptures (or your phone with the app) next to your bed tonight. Before you scroll through social media, read just three verses to invite the Spirit before you sleep.', scriptureRef: 'D&C 135:5', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p5', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'wednesday', day: 'Wed', date: 'Nov 26', title: 'Your Personal Liahona 🧭', text: 'We often talk about scriptures for the whole world, but did you know God has scripture written just for you? Prophets have called your Patriarchal Blessing a "personal Liahona". If you are wondering if you are "ready" or "old enough" to get yours, remember that readiness is less about age and more about your desire to know who you are. It’s a message of God’s deep, personal love for you.', prompt: 'Challenge: If you have your blessing, read it today. If you don’t, take a moment to ask your parents or leaders about their experience receiving theirs.', scriptureRef: 'D&C 6:23', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/6?lang=eng#p23', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'thursday', day: 'Thu', date: 'Nov 27', title: 'Attitude on the Journey 🏔️', text: 'After the Prophet died, the Saints had to leave their beautiful city of Nauvoo and trek across the wilderness. It was scary and sad. But the Lord told them that how they acted on the journey mattered just as much as getting to the destination. He wanted their trials to become spiritual experiences. When you are going through a "trek" of your own—maybe a hard class or a friendship issue—your attitude can turn that trial into a moment where you get to know Jesus better.', prompt: 'Reflection: What is one "hard thing" you have to do today? Try to do it without complaining, and see if you feel a difference in your spirit.', scriptureRef: 'D&C 136:31', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p31', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'friday', day: 'Fri', date: 'Nov 28', title: 'Dance by the Fire 🔥', text: 'Even in the middle of a freezing winter trek, the Lord commanded the Saints to praise Him with "singing, with music, with dancing, and with a prayer of praise and thanksgiving". God doesn\'t expect us to be miserable just because life is hard! He wants us to find joy and utilize the gift of music to lift our spirits. Happiness is a commandment, even in Winter Quarters.', prompt: 'Challenge: Put on your favorite uplifting song or a church hymn that makes you happy. Sing along (loudly!) to shake off any stress from the week.', scriptureRef: 'D&C 136:28', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p28', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'saturday', day: 'Sat', date: 'Nov 29', title: 'Save Jesus Only 👑', text: 'It is amazing to think that Joseph Smith did more for the salvation of people on earth than anyone else—except for Jesus. Joseph’s entire life was about pointing us to the Savior. He restored the keys, the temples, and the scriptures so that we could access the Atonement of Jesus Christ. We honor Joseph, but we worship Jesus. Because of the Restoration, we know exactly where to turn for forgiveness and strength.', prompt: 'Reflection: Complete this sentence: "Because of what the Lord restored through Joseph Smith, I know that Jesus Christ..."', scriptureRef: 'D&C 135:3', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/135?lang=eng#p3', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' },
-            { id: 'sunday', day: 'Sun', date: 'Nov 30', title: 'Faithful to the End 🏁', text: 'The lesson this week mentions that Joseph and Hyrum were "faithful... to the end" of their lives. Sometimes it\'s easy to be faithful on a Youth Conference weekend or at Girls\' Camp, but the Lord needs women who are faithful on random Tuesdays and tired Sunday mornings. Being a disciple is a lifetime journey. Just like the pioneers, we move forward one step at a time, trusting that God is leading us to our own "promised land."', prompt: 'Challenge: As you take the Sacrament today, commit to Heavenly Father that you will try to be faithful this coming week, no matter what school or life throws at you.', scriptureRef: 'D&C 136:39', scriptureLink: 'https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/136?lang=eng#p39', lessonLink: 'https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-doctrine-and-covenants-2025/48-doctrine-and-covenants-135-136?lang=eng' }
-        ];
-
-        const SONGS_DATA = [
-            { id: 'monday', day: 'Mon', title: 'Sealed with Blood 🩸', devotionalText: 'The martyrdom of Joseph and Hyrum Smith was not merely a tragic end; it was a divine seal upon their work. As we study the closing moments of their lives, we see that they went to Carthage knowing they would not return, yet they submitted to keep the Saints safe. Elder Jeffrey R. Holland powerfully teaches that these men would not have died for a "fictitious" book or a church created out of "whole cloth". Their willingness to die rather than deny the truth stands as an unimpeachable witness of the Restoration.', 
-                hymnTitle: 'Joseph Smith\'s First Prayer', hymnLink: 'https://www.youtube.com/watch?v=KuIIrQNjEnE', hymnAnalysis: 'This stirring performance captures the emotional weight of the Prophet\'s mission from beginning to end. While a hymn, this modern arrangement emphasizes the solitude and the "divine seal" upon his work mentioned in the devotional. The lyrics recount the moment God called him, while the soaring orchestration reflects the "unimpeachable witness" of the Restoration that he eventually sealed with his life. It invites a spirit of deep reverence for the cost of the Restoration and the integrity of the Prophet.', 
-                songTitle: 'A Poor Wayfaring Man of Grief', songArtist: 'Sharon Hopkins', songLink: 'https://www.youtube.com/watch?v=ylplmSaVmQ0', songAnalysis: 'This hymn, beautifully sung by Sharon Hopkins, is historically inseparable from the events of this day’s devotional. It was the very song John Taylor sang to Joseph and Hyrum in Carthage Jail shortly before the martyrdom to bring comfort to their heavy hearts. The lyrics describe a series of trials where the narrator serves a stranger who turns out to be the Savior. This mirrors the devotional\'s theme of submission and sacrifice. Listening to this hymn allows us to sit in that jail cell with them, feeling the somber resolve and the deep love for the Savior that empowered them to seal their testimony with their blood.' },
-            { id: 'tuesday', day: 'Tue', title: 'Finding Comfort in the Storm 📖', devotionalText: 'It is profound to consider what the Prophet and Patriarch did in their final hours to find peace. While in Carthage Jail, facing imminent death, Hyrum Smith read from the Book of Mormon—specifically Ether chapter 12—to find comfort. The verses he read spoke of charity and the grace of God making weak things strong. If the scriptures could provide peace to prophets facing martyrdom, think of the solace they can offer us in our daily stresses and trials.', 
-                hymnTitle: 'Where Can I Turn for Peace?', hymnLink: 'https://www.youtube.com/watch?v=1Lv3Qv9pjjc', hymnAnalysis: 'The devotional asks us to consider how we find peace in our own "daily stresses and trials," just as Hyrum sought comfort in scripture. This hymn is the ultimate musical answer to that question. The lyrics, "Where is the quiet hand to calm my anguish? Who, who can understand? He, only One," point us to the same source of solace Hyrum found in Ether 12: the grace of Jesus Christ. The melody is gentle and pleading, perfectly matching the emotional state of seeking "comfort in the storm."', 
-                songTitle: 'God Will Prepare a Way', songArtist: 'Shawna Edwards', songLink: 'https://www.youtube.com/watch?v=qqRRzamdYvU', songAnalysis: 'This song acknowledges the reality that we, like the early Saints, face difficult times where we feel weak or afraid. The devotional highlights Hyrum reading about "weak things becoming strong," and this song amplifies that message by teaching that we can keep moving forward because "He is with us." It bridges the gap between the extreme historical context of Carthage and our modern personal struggles, reminding us that the same God who comforted Hyrum is available to comfort us.' },
-            { id: 'wednesday', day: 'Wed', title: 'The Work Goes On ⏩', devotionalText: 'When Joseph Smith fell, enemies of the Church believed the "Mormon" problem was solved. Yet, the martyrdom was not the end of the Restoration; "there was more work to do and more revelation that would guide the Church forward". The end of the Prophet\'s mortal life was merely a transition in the ongoing work of God. Just as the early Saints had to look forward with faith, we are reminded that this is Christ\'s church, and He continues to direct it regardless of the obstacles we face.', 
-                hymnTitle: 'Let Us All Press On', hymnLink: 'https://www.youtube.com/watch?v=CEkeJPRgv8s', hymnAnalysis: 'The title of this hymn epitomizes the spirit of the Saints immediately following the martyrdom. Despite the shock and grief, the "work goes on," and this hymn is a rallying cry to continue that work. The lyrics "Fear not, though the enemy deride; God is on our side" directly address the devotional\'s note that enemies thought the Church would collapse. The energetic tempo and determined lyrics capture the resilience required to "look forward with faith" during times of transition and opposition.', 
-                songTitle: 'A Great Work', songArtist: 'Nik Day (Strive to Be)', songLink: 'https://www.youtube.com/watch?v=KjSTiLrXxjo', songAnalysis: 'This upbeat contemporary song connects the historical resilience of the Saints to our modern responsibility. The devotional reminds us that there is "more work to do," and this song is a call to action for the rising generation to take up that mantle. The lyrics speak of being trusted by the Lord to carry the work forward "at this time" and "in this place," reinforcing the idea that the Restoration is ongoing and that we play a vital role in it today, regardless of the obstacles mentioned in the text.' },
-            { id: 'thursday', day: 'Thu', title: 'A Legacy of Gratitude 🙏', devotionalText: 'On this day of Thanksgiving, we have much to be grateful for regarding the Prophet Joseph Smith. Scripture declares that he "has done more, save Jesus only, for the salvation of men in this world, than any other man that ever lived in it". Through him, we received the Book of Mormon, the Doctrine and Covenants, and the ordinances of the temple—gifts that bind us to God and our families for eternity. Our gratitude for the message is often best expressed by how we honor the messenger\'s sacrifice.', 
-                hymnTitle: 'Praise to the Man', hymnLink: 'https://www.youtube.com/watch?v=LeXrjFgNPTc', hymnAnalysis: 'This hymn is the definitive musical expression of the scripture quoted in today\'s devotional (D&C 135:3). It is a song of high gratitude and triumph. While it honors Joseph Smith, it ultimately directs that praise to "Jehovah" for appointing a prophet. The line "Great is his glory and endless his priesthood" celebrates the specific gifts mentioned in the devotional—the ordinances that bind us to God. Singing this on Thanksgiving is a powerful way to fulfill the challenge of honoring the messenger and our God who sent him.', 
-                songTitle: 'Grateful for the Rain', songArtist: 'Strive to Be', songLink: 'https://www.youtube.com/watch?v=dKYUPjBROnU', songAnalysis: 'Since this devotional falls on Thanksgiving, this song provides a modern expression of the "Legacy of Gratitude." It moves beyond generic thankfulness into a deep spiritual recognition of God\'s hand in our lives, even in difficult times. The lyrics focus on praising God for His plan and His love, which aligns with the devotional\'s focus on the gifts of salvation. It sets a joyful, reflective tone perfect for a Thanksgiving dinner discussion about the truths we are thankful for.' },
-            { id: 'friday', day: 'Fri', title: 'The Journey is the Lesson ⛺', devotionalText: 'After the tragedy of Carthage, the Saints faced a grueling 1,300-mile trek west. In Doctrine and Covenants 136, the Lord taught them that "their conduct on the journey was as important as their destination". This revelation transformed a desperate migration into a "shared spiritual experience". We are all on a covenant path; often, the Lord is less concerned with how fast we arrive and more concerned with who we are becoming along the way.', 
-                hymnTitle: 'Come, Come, Ye Saints', hymnLink: 'https://www.youtube.com/watch?v=_eInUpiY9s8', hymnAnalysis: 'This hymn was written during the very journey described in the devotional. It captures the essence of D&C 136, transforming the "grueling trek" into a journey of faith. The refrain "All is well" is not a denial of hardship, but a declaration of the spiritual perspective the Lord commanded them to have. It perfectly illustrates the principle that our attitude and conduct on the journey define the experience. Listening to it helps us reframe our own current "journeys" or trials as opportunities to refine our character.', 
-                songTitle: 'Faith in Every Footstep', songArtist: 'The Tabernacle Choir', songLink: 'https://www.youtube.com/watch?v=6jH4mOEDu5w', songAnalysis: 'Written for the sesquicentennial of the pioneer trek, this song connects the physical journey of the early Saints to the spiritual journey we are all on today. The devotional states that "we are all on a covenant path," and this song emphasizes the step-by-step nature of that path. The lyrics remind us that "hope is the anthem of the soul," encouraging us to focus on who we are becoming as we walk, rather than just the destination. It is a majestic reminder that our personal treks are consecrated by our faith.' },
-            { id: 'saturday', day: 'Sat', title: 'Safety for the Soul ⚓', devotionalText: 'Elder Holland reminds us that God "always provides safety for the soul," and through the Book of Mormon, He has done that again in our time. Joseph and Hyrum were willing to die rather than deny the divine origin of that book. Elder Holland asks us to trust that these men would not blaspheme before God in their final hour by fixing their lives to a lie. The Book of Mormon is true, and it is a source of safety and truth for us today.', 
-                hymnTitle: 'The Iron Rod', hymnLink: 'https://www.youtube.com/watch?v=iMJBwNNosew', hymnAnalysis: 'The devotional focuses on the Book of Mormon as a source of "safety for the soul." This hymn vividly depicts the word of God as a safety rail (the iron rod) leading through mists of darkness. Just as Joseph and Hyrum clung to the truth of the Book of Mormon even in death, this hymn invites us to "hold to the rod" to avoid the confusion of the world. It musically reinforces the concept that safety comes not from the absence of danger, but from holding fast to the revealed word of God.', 
-                songTitle: 'Ask of God', songArtist: '2017 Youth Theme', songLink: 'https://www.youtube.com/watch?v=LhKlMGuxJ38', songAnalysis: 'The devotional challenges us to accept Moroni\'s promise to "ask God if it is true." This song is a dynamic invitation to do exactly that. While it references Joseph Smith\'s prayer, the chorus "Ask of God, ask in faith" applies directly to the process of gaining a testimony of the Book of Mormon. The music is confident and reassuring, encouraging the listener to seek personal revelation. It supports the reflection question by providing a musical model of what it looks like to approach God with a "sincere heart and real intent."' },
-            { id: 'sunday', day: 'Sun', title: 'Accomplishing His Will 🕊️', devotionalText: 'As we conclude this week\'s study, we look at the transition of leadership to Brigham Young and the Quorum of the Twelve. Doctrine and Covenants 136 is a reminder that we can "accomplish the Lord\'s will" when we follow His counsel. Whether it is crossing the plains or navigating modern life, the Lord promises that if we are faithful in keeping our covenants, His spirit will guide us. We honor the martyrs not just by remembering their deaths, but by living the gospel they died to restore.', 
-                hymnTitle: 'Guide Us, O Thou Great Jehovah', hymnLink: 'https://www.youtube.com/watch?v=twP_cR1ymiQ', hymnAnalysis: 'This hymn is a prayer for divine guidance, perfectly suiting the theme of D&C 136 where the Saints looked to the Lord to lead them across the plains. The lyrics "Guide us... Pilgrim through this barren land" acknowledge our dependence on God to "accomplish His will." The rousing chorus, "Songs of praises, I will ever give to thee," aligns with the specific counsel in D&C 136 to praise the Lord. It is a fitting conclusion to the week, turning our hearts toward the future with faith that He will lead us.', 
-                songTitle: 'I Will Walk with Jesus', songArtist: 'Stephen Nelson', songLink: 'https://www.youtube.com/watch?v=gv7ctPUv2Jc', songAnalysis: 'The devotional emphasizes that we honor the martyrs by "living the gospel they died to restore" and keeping our covenants. "I Will Walk with Jesus" is a beautiful declaration of intent to do just that. The lyrics about walking in His way and having His spirit "guide" us (as mentioned in the text) make this a personal anthem of discipleship. It simplifies the complex history of the week into a singular, actionable commitment: to walk with the Savior daily, fulfilling the Lord\'s will in our modern lives.' }
-        ];
-
-        const STUDY_GUIDE_DATA = [
-            {
-                title: "Background",
-                content: [
-                    "This week’s lesson covers the tragic yet triumphant events surrounding the martyrdom of the Prophet Joseph Smith and his brother Hyrum, followed by the reorganization of the Camp of Israel for their westward journey.",
-                    "On June 27, 1844, Joseph and Hyrum Smith, accompanied by John Taylor and Willard Richards, were held in Carthage Jail. Despite hoping their submission to arrest would keep the Saints in Nauvoo safe, a mob stormed the jail. Section 135 is an announcement of the martyrdom, acting as a eulogy and a testament to their divine calling.",
-                    "Section 136 was received by Brigham Young in January 1847 at Winter Quarters. The Saints had been driven from their homes and faced a daunting journey west. This revelation provided the organization, covenant instructions, and spiritual guidance necessary to transform a refugee migration into a holy trek toward Zion."
-                ]
-            },
-            {
-                title: "Introduction: The Martyrdom",
-                discussionPoint: "The Prophet Joseph and Hyrum went to Carthage knowing it was likely the end of their mortal lives. In their final moments, they sought comfort in the scriptures and hymns. Specifically, Hyrum read from the Book of Mormon, Ether chapter 12, which speaks of farewells and finding grace despite weakness.",
-                quote: "Doctrine and Covenants 135:4: \"When Joseph went to Carthage to deliver himself up to the pretended requirements of the law, two or three days previous to his assassination, he said: 'I am going like a lamb to the slaughter; but I am calm as a summer’s morning; I have a conscience void of offense towards God, and towards all men. I shall die innocent, and it shall yet be said of me—he was murdered in cold blood.'\"",
-                question: "Why is it significant that Joseph and Hyrum spent their final moments reading the Book of Mormon and singing hymns? What does this tell us about the sincerity of their testimony?",
-                answer: "It shows that the Book of Mormon was not a fabrication; men do not turn to a fictional story for comfort in the face of death. It demonstrates that their testimony was their source of strength. It teaches us where to turn when we face our own darkest hours—to the word of God and sacred music."
-            },
-            {
-                title: "A Life of Consecration",
-                discussionPoint: "Section 135 verse 3 contains one of the most powerful tributes to Joseph Smith, declaring that he has done more, save Jesus only, for the salvation of men in this world. This includes the translation of the Book of Mormon, the publication of the Doctrine and Covenants, the gathering of Israel, and the establishment of ordinances.",
-                quote: "Elder Jeffrey R. Holland: \"In this their greatest and last hour of need, I ask you: would these men blaspheme before God by continuing to fix their lives, their honor, and their own search for eternal salvation on a book (and by implication a church and a ministry) they had fictitiously created out of whole cloth? ... They would not do that!\"",
-                questions: [
-                    {
-                        q: "Elder Holland asks if these men would \"blaspheme before God\" in their last moments by clinging to a hoax. How does this perspective strengthen your own confidence in the Book of Mormon?",
-                        a: "It reminds us that the Book of Mormon wasn't a casual creative writing project; it was a divine command that defined their existence. Knowing they found comfort in its pages moments before death proves they believed it was ancient scripture. It shifts the debate from \"intellectual curiosity\" to \"life-and-death integrity.\""
-                    },
-                    {
-                        q: "The scripture lists many tangible accomplishments of Joseph Smith. How have \"these things\" specifically affected your personal relationship with Heavenly Father and Jesus Christ?",
-                        a: "The Book of Mormon clarifies the Atonement of Jesus Christ. The temple sealing power allows me to be with my family forever. The Doctrine and Covenants helps me understand how God speaks to us today. Because of the Restoration, I know the nature of God is that of a loving Father, not a distant mystery."
-                    }
-                ]
-            },
-            {
-                title: "Guidance for the Journey (D&C 136)",
-                discussionPoint: "Following the death of the Prophet, the Saints were grieving and homeless. Brigham Young pleaded for guidance at Winter Quarters, and the Lord responded with Section 136. This revelation helped the Saints understand that how they traveled was just as important as where they were going. It provided structure and spiritual covenants to bind the people together.",
-                questions: [
-                    {
-                        q: "The Saints were in the middle of a \"wilderness\" experience—cold, hungry, and homeless. How does receiving personal guidance (through prayer, scriptures, or a patriarchal blessing) help us when we are in a \"wilderness\" period of our own lives?",
-                        a: "It gives us a sense of identity and purpose when we feel lost. It helps us see our trials through a spiritual lens rather than just a physical one. It reminds us that the Lord knows who we are and has a plan for us, even when current circumstances are difficult."
-                    }
-                ]
-            },
-            {
-                title: "Attitude in Adversity",
-                discussionPoint: "In the midst of their suffering, the Lord commanded the Saints to praise Him. He told them that if they were merry, they should sing and dance, and if they were sorrowful, they should pray. This teaches a profound principle: we can control our spiritual response even when we cannot control our physical circumstances.",
-                quote: "Doctrine and Covenants 136:28–29: \"If thou art merry, praise the Lord with singing, with music, with dancing, and with a prayer of praise and thanksgiving. If thou art sorrowful, call on the Lord thy God with supplication, that your souls may be joyful.\"",
-                question: "Why do you think the Lord instructed the Saints to sing and dance while they were homeless and crossing the plains? How can we apply the instruction to \"praise the Lord\" during our own trials?",
-                answer: "Singing and praising invite the Spirit, which drives out fear and contention. Gratitude changes our perspective from what we lack to what we have. It builds unity among the group. It is an act of faith to rejoice in the Lord before the trial is actually over."
-            },
-            {
-                title: "Supplemental Application: A Personal Liahona",
-                discussionPoint: "Just as the Saints needed guidance for their physical journey to the Salt Lake Valley, we need guidance for our spiritual journey through life. The article compares a patriarchal blessing to \"personal scripture for you\" or a \"personal Liahona.\"",
-                question: "D&C 136 describes moving into the unknown with faith. How does a patriarchal blessing (or reviewing it regularly) help us when we face our own unknowns?",
-                answer: "It reminds us of our eternal identity when the world tries to define us. It gives us long-term perspective during short-term trials. It assures us that God knows us personally, just as He knew the Saints in the camp of Israel."
-            }
-        ];
-
-        // ==========================================
-        // ICONS (Inline SVG Components)
-        // ==========================================
-        const IconSun = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
-        const IconUsers = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-        const IconMusic = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
-        const IconBookOpen = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
-        const IconShare = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>;
-        const IconChevronDown = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"/></svg>;
-        const IconChevronRight = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>;
-        const IconLink = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>;
-        const IconPlayCircle = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>;
-        const IconPrinter = ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>;
-
-
-        // ==========================================
-        // COMPONENTS
-        // ==========================================
-
-        // 1. Toast Notification Component
-        const Toast = ({ message, show, onClose }) => {
-            useEffect(() => {
-                if (show) {
-                    const timer = setTimeout(onClose, 3000);
-                    return () => clearTimeout(timer);
-                }
-            }, [show, onClose]);
-
-            if (!show) return null;
-
-            return (
-                <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 animate-bounce toast-notification">
-                    <span className="text-green-400">&#10003;</span>
-                    {message}
-                </div>
-            );
-        };
-
-        // 2. Interactive Toggle Answer Component
-        const ToggleAnswer = ({ question, answer }) => {
-            const [isOpen, setIsOpen] = useState(false);
-
-            return (
-                <div className="mb-6 border-l-4 border-amber-200 pl-4">
-                    <button 
-                        onClick={() => setIsOpen(!isOpen)}
-                        className="text-left font-bold text-amber-900 w-full hover:text-amber-700 transition-colors flex items-start gap-2"
-                    >
-                        <span className="mt-1">{isOpen ? <IconChevronDown className="w-5 h-5" /> : <IconChevronRight className="w-5 h-5" />}</span>
-                        <span>{question}</span>
-                    </button>
-                    
-                    {isOpen && (
-                        <div className="mt-3 p-4 bg-stone-100 rounded-lg text-stone-700 italic border border-stone-200 fade-in">
-                            <span className="font-bold not-italic text-stone-500 text-xs uppercase tracking-wider block mb-1">Possible Answer</span>
-                            {answer}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // 3. Main App Component
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('devotional');
-            const [activeDayId, setActiveDayId] = useState('');
-            const [showToast, setShowToast] = useState(false);
-            const [youthGroup, setYouthGroup] = useState('ym'); // 'ym' or 'yw'
-
-            // Initialize Day based on current date
-            useEffect(() => {
-                const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                const todayIndex = new Date().getDay();
-                setActiveDayId(dayMap[todayIndex]);
-            }, []);
-
-            const getActiveData = (dataArray) => {
-                return dataArray.find(d => d.id === activeDayId) || dataArray[0];
-            };
-
-            const copyToClipboard = (dayData) => {
-                const promptParts = dayData.prompt.split(':');
-                const promptLabel = promptParts[0];
-                const promptText = promptParts.slice(1).join(':').trim();
-                const scriptureText = (dayData.scriptureRef && dayData.scriptureLink)
-                    ? `Scripture: ${dayData.scriptureRef}\n${dayData.scriptureLink}\n\n`
-                    : ""; 
-
-                // Use dayData.date if available, otherwise fallback to empty string or generic
-                const dateStr = dayData.date ? dayData.date : "";
-
-                const textToCopy = `✨ Daily Devotional ✨\n\n${dateStr}\n*${dayData.title}*\n\n${dayData.text}\n\n*${promptLabel}:* ${promptText}\n\n${scriptureText}Full Lesson:\n${dayData.lessonLink}`;
-
-                // Modern clipboard API
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                     navigator.clipboard.writeText(textToCopy).then(() => {
-                        setShowToast(true);
-                    }).catch(err => {
-                        fallbackCopy(textToCopy);
-                    });
-                } else {
-                    fallbackCopy(textToCopy);
-                }
-            };
-
-            const fallbackCopy = (text) => {
-                 try {
-                    const textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    
-                    // Avoid scrolling to bottom
-                    textArea.style.top = "0";
-                    textArea.style.left = "0";
-                    textArea.style.position = "fixed";
+    <script>
+        const ksaSelector = document.getElementById('ksa-selector');
+        const appPasswordInput = document.getElementById('app-password');
+        const generateBtn = document.getElementById('generate-btn');
+        const abilityInput = document.getElementById('ability-input');
+        const tableBody = document.getElementById('ksa-table-body');
+        const tableTitle = document.getElementById('table-title');
+        const resultsHeader = document.getElementById('results-header');
+        const noResultsDiv = document.getElementById('no-results');
+        const tableWrapper = document.getElementById('table-wrapper');
+        const mainLoader = document.getElementById('loader');
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const copyBtn = document.getElementById('copy-btn');
+        const copyBtnText = document.getElementById('copy-btn-text');
         
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    setShowToast(true);
-                 } catch (err) {
-                     console.error("Fallback copy failed", err);
-                 }
+        // Toggle Password Logic
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeSlashIcon = document.getElementById('eye-slash-icon');
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = appPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            appPasswordInput.setAttribute('type', type);
+            
+            // Toggle Icons
+            eyeIcon.classList.toggle('hidden');
+            eyeSlashIcon.classList.toggle('hidden');
+        });
+
+        let currentKSAData = [];
+
+        const generateKSA = async (ability, ksaType, apiKey) => {
+            toggleLoading(true);
+            
+            // OpenAI API Endpoint
+            const API_URL = 'https://api.openai.com/v1/chat/completions';
+
+            // Constructing the Prompt for ChatGPT
+            const systemPrompt = `
+            You are an expert IT and Cybersecurity Competency Architect. 
+            Your goal is to generate a Knowledge, Skills, and Abilities (KSA) matrix.
+            
+            Output MUST be a strict JSON array of objects. Do not include markdown formatting (like \`\`\`json).
+            
+            The JSON structure must be:
+            [
+              {
+                "discipline": "String",
+                "level": "String (e.g. Level 1, Level 2)",
+                "role": "String (e.g. Junior Admin, Senior Engineer)",
+                "knowledge": "String",
+                "skill": "String",
+                "trainingSource": "String",
+                "trainingLink": "String (URL or N/A)",
+                "techStack": "String",
+                "description": "String",
+                "demonstration": "String"
+              }
+            ]
+            
+            Generate 3 to 5 entries varying by experience level (Junior to Expert) for the requested discipline and ability.
+            `;
+
+            const userPrompt = `Discipline: ${ksaType}. Ability: ${ability}.`;
+
+            const payload = {
+                model: "gpt-4", // Or "gpt-3.5-turbo" if you want to save cost/tokens
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                temperature: 0.7
             };
 
-            const renderDevotional = () => {
-                const data = getActiveData(DEVOTIONAL_DATA);
-                return (
-                    <div className="space-y-6 fade-in max-w-2xl mx-auto">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                            <span className="text-amber-600 text-sm font-bold uppercase tracking-widest">{data.date}</span>
-                            <h2 className="text-3xl font-serif font-bold text-stone-800 mt-2 mb-4">{data.title}</h2>
-                            <p className="text-stone-600 leading-relaxed text-lg">{data.text}</p>
-                            
-                            <div className="mt-8 p-5 bg-amber-50 rounded-xl border border-amber-100">
-                                <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                                    {data.prompt.split(':')[0]}
-                                </h3>
-                                <p className="text-stone-700 italic">{data.prompt.split(':').slice(1).join(':')}</p>
-                            </div>
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
 
-                            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {data.scriptureLink && (
-                                    <a href={data.scriptureLink} target="_blank" className="flex items-center justify-center gap-2 bg-amber-600 text-white py-3 rounded-lg font-medium hover:bg-amber-700 transition">
-                                        <IconBookOpen className="w-4 h-4" /> Read Scripture: {data.scriptureRef}
-                                    </a>
-                                )}
-                                <a href={data.lessonLink} target="_blank" className="flex items-center justify-center gap-2 bg-stone-200 text-stone-700 py-3 rounded-lg font-medium hover:bg-stone-300 transition">
-                                    <IconLink className="w-4 h-4" /> Full Lesson
-                                </a>
-                            </div>
+                if (!response.ok) {
+                    if(response.status === 401) {
+                        throw new Error("Access Denied: Invalid API Key.");
+                    }
+                    throw new Error(result.error?.message || `Server error: ${response.status}`);
+                }
+                
+                // Parsing OpenAI Response
+                const content = result.choices[0].message.content;
+                
+                // Attempt to clean markdown if ChatGPT adds it despite instructions
+                const cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                let ksaData;
+                try {
+                    ksaData = JSON.parse(cleanJson);
+                } catch (e) {
+                    throw new Error("Failed to parse AI response. Try again.");
+                }
 
-                            <button 
-                                onClick={() => copyToClipboard(data)}
-                                className="w-full mt-4 py-4 border-t border-stone-100 text-stone-500 hover:text-amber-600 font-medium flex items-center justify-center gap-2 transition-colors"
-                            >
-                                <IconShare className="w-4 h-4" /> Share Devotional
-                            </button>
-                        </div>
-                    </div>
-                );
-            };
+                currentKSAData = ksaData;
+                displayResults(ability, ksaData);
 
-            const renderYouth = () => {
-                const data = getActiveData(youthGroup === 'ym' ? YM_DATA : YW_DATA);
-                return (
-                    <div className="fade-in max-w-3xl mx-auto">
-                        {/* Toggle Switch for YM/YW */}
-                        <div className="flex justify-center mb-6 bg-stone-200 p-1 rounded-xl inline-flex w-full sm:w-auto mx-auto">
-                            <button 
-                                onClick={() => setYouthGroup('ym')}
-                                className={`flex-1 sm:flex-none px-8 py-2 rounded-lg font-bold transition-all ${youthGroup === 'ym' ? 'bg-white shadow-sm text-amber-700' : 'text-stone-500 hover:text-stone-700'}`}
-                            >
-                                Young Men
-                            </button>
-                            <button 
-                                onClick={() => setYouthGroup('yw')}
-                                className={`flex-1 sm:flex-none px-8 py-2 rounded-lg font-bold transition-all ${youthGroup === 'yw' ? 'bg-white shadow-sm text-amber-700' : 'text-stone-500 hover:text-stone-700'}`}
-                            >
-                                Young Women
-                            </button>
-                        </div>
+            } catch (error) {
+                console.error('Error generating KSA:', error);
+                displayError(error.message);
+            } finally {
+                toggleLoading(false);
+            }
+        };
+        
+        const displayResults = (ability, data) => {
+            tableBody.innerHTML = ''; 
+            const selectedText = ksaSelector.options[ksaSelector.selectedIndex].text;
+            tableTitle.textContent = `${selectedText} KSA for: "${ability}"`;
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+                const roleText = item.role.includes('[Number]') 
+                    ? item.role.replace('[Number]', item.level.replace(/\D/g, '')) + ` - ${ability}`
+                    : `${item.role} - ${ability}`;
+                item.formattedRole = roleText;
 
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 relative overflow-hidden">
-                            {/* Decorative Top Border */}
-                            <div className={`absolute top-0 left-0 w-full h-2 ${youthGroup === 'ym' ? 'bg-blue-600' : 'bg-pink-500'}`}></div>
-
-                            <h2 className="text-2xl font-serif font-bold text-stone-800 mt-4 mb-4">{data.title}</h2>
-                            <p className="text-stone-600 leading-relaxed">{data.text}</p>
-                            
-                            <div className="mt-6 p-5 bg-stone-50 rounded-xl border border-stone-100">
-                                <h3 className="font-bold text-stone-800 mb-2">{data.prompt.split(':')[0]}</h3>
-                                <p className="text-stone-600">{data.prompt.split(':').slice(1).join(':')}</p>
-                            </div>
-                             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {data.scriptureLink && (
-                                    <a href={data.scriptureLink} target="_blank" className={`flex items-center justify-center gap-2 text-white py-3 rounded-lg font-medium transition ${youthGroup === 'ym' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-pink-500 hover:bg-pink-600'}`}>
-                                        <IconBookOpen className="w-4 h-4" /> Read Scripture: {data.scriptureRef}
-                                    </a>
-                                )}
-                                <a href={data.lessonLink} target="_blank" className="flex items-center justify-center gap-2 bg-stone-200 text-stone-700 py-3 rounded-lg font-medium hover:bg-stone-300 transition">
-                                    <IconLink className="w-4 h-4" /> Full Lesson
-                                </a>
-                            </div>
-                             <button 
-                                onClick={() => copyToClipboard(data)}
-                                className="w-full mt-4 py-4 border-t border-stone-100 text-stone-500 hover:text-stone-800 font-medium flex items-center justify-center gap-2 transition-colors"
-                            >
-                                <IconShare className="w-4 h-4" /> Share Content
-                            </button>
-                        </div>
-                    </div>
-                );
-            };
-
-            const renderSongs = () => {
-                const data = getActiveData(SONGS_DATA);
-                return (
-                    <div className="fade-in max-w-3xl mx-auto">
-                         <div className="text-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200 mb-6">
-                            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <IconMusic className="w-6 h-6 text-amber-700" />
-                            </div>
-                            <h2 className="text-2xl font-serif font-bold text-stone-800">Songs of the Soul</h2>
-                            <p className="mt-2 text-stone-500 text-sm">Music to invite the Spirit into your daily study.</p>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                            <h3 className="text-lg font-bold text-stone-400 uppercase tracking-wider mb-4">Daily Selection</h3>
-                            <h2 className="text-xl font-bold text-stone-800 mb-2">{data.title}</h2>
-                            <p className="text-stone-600 italic mb-8 text-sm border-l-2 border-amber-300 pl-4">{data.devotionalText}</p>
-                            
-                            <div className="space-y-8">
-                                {/* Hymn Section */}
-                                <div>
-                                    <span className="text-xs font-bold text-amber-600 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                        <IconMusic className="w-3 h-3" /> Hymn Selection
-                                    </span>
-                                    <div className="flex items-start justify-between gap-4">
-                                        <h3 className="text-xl font-serif font-bold text-stone-800">{data.hymnTitle}</h3>
-                                        <a href={data.hymnLink} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 transition-colors" aria-label="Play Song">
-                                            <IconPlayCircle className="w-8 h-8" />
-                                        </a>
-                                    </div>
-                                    <p className="mt-2 text-stone-600 text-sm leading-relaxed">{data.hymnAnalysis}</p>
-                                </div>
-
-                                <hr className="border-stone-100" />
-
-                                {/* Song Section */}
-                                <div>
-                                    <span className="text-xs font-bold text-sky-600 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                        <IconMusic className="w-3 h-3" /> Contemporary Song
-                                    </span>
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <h3 className="text-xl font-serif font-bold text-stone-800">{data.songTitle}</h3>
-                                            <p className="text-xs text-stone-400 mb-2">by {data.songArtist}</p>
-                                        </div>
-                                        <a href={data.songLink} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 transition-colors" aria-label="Play Song">
-                                            <IconPlayCircle className="w-8 h-8" />
-                                        </a>
-                                    </div>
-                                    <p className="mt-2 text-stone-600 text-sm leading-relaxed">{data.songAnalysis}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            const renderStudy = () => {
-                return (
-                    <div className="fade-in max-w-6xl mx-auto pb-12">
-                         <div id="printable-study-section" className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 relative">
-                            
-                            <div className="flex justify-between items-start mb-2">
-                                 <div className="w-full">
-                                    <h1 className="text-3xl font-serif font-bold text-center text-amber-800">Discussion Guide</h1>
-                                 </div>
-                                 <button 
-                                    onClick={() => window.print()} 
-                                    className="no-print absolute top-6 right-6 text-stone-400 hover:text-stone-600 hover:bg-stone-100 p-2 rounded-full transition-all"
-                                    aria-label="Print Discussion Guide"
-                                    title="Print Discussion Guide"
-                                >
-                                    <IconPrinter className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            <p className="text-center text-stone-500 mb-8 italic">"{WEEK_INFO.title}"</p>
-                            
-                            {/* --- ADDED IMAGE HERE --- */}
-                            <div className="mb-8">
-                                <img 
-                                    src="135-136 WhtBrd.jpg" 
-                                    alt="Lesson Diagram: Sealed with Blood & Guided Journey" 
-                                    className="w-full h-auto rounded-lg shadow-md border border-stone-200"
-                                    onError={(e) => {e.target.style.display = 'none'}} 
-                                />
-                            </div>
-                            {/* ------------------------ */}
-                            
-                            {STUDY_GUIDE_DATA.map((section, idx) => (
-                                <div key={idx} className="mb-10 last:mb-0">
-                                    <h2 className="text-xl font-bold text-stone-800 mb-3 border-b border-amber-100 pb-2">{section.title}</h2>
-                                    
-                                    {section.content && section.content.map((p, i) => (
-                                        <p key={i} className="text-stone-700 mb-3 leading-relaxed">{p}</p>
-                                    ))}
-
-                                    {section.discussionPoint && (
-                                        <div className="mb-4">
-                                            <h3 className="text-amber-700 font-semibold text-sm uppercase mb-1">Context</h3>
-                                            <p className="text-stone-700">{section.discussionPoint}</p>
-                                        </div>
-                                    )}
-
-                                    {section.quote && (
-                                        <blockquote className="border-l-4 border-stone-300 pl-4 py-1 my-4 text-stone-600 italic bg-stone-50 p-3 rounded-r-lg">
-                                            {section.quote}
-                                        </blockquote>
-                                    )}
-
-                                    {section.question && (
-                                        <ToggleAnswer question={section.question} answer={section.answer} />
-                                    )}
-
-                                    {section.questions && section.questions.map((qItem, qIdx) => (
-                                        <ToggleAnswer key={qIdx} question={qItem.q} answer={qItem.a} />
-                                    ))}
-                                </div>
-                            ))}
-
-                            <div className="mt-12 pt-8 border-t border-stone-200 text-center">
-                                <p className="text-stone-800 font-medium">Lesson Summary</p>
-                                <p className="text-stone-600 mt-2 text-sm">This week's lesson is a powerful reminder that the Lord is hastening His work and preparing the world for His glorious return. He calls us to leave the wickedness of the world (Babylon) and gather to the safety and righteousness of Zion.</p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            // Dynamic Footer based on view
-            const renderFooter = () => (
-                <footer className="p-6 text-center text-stone-400 text-xs">
-                    <p>{WEEK_INFO.valediction}</p>
-                </footer>
-            );
-
-            return (
-                <div className="flex flex-col h-full bg-stone-100">
-                    {/* Header */}
-                    <header className="bg-white border-b border-stone-200 pt-6 pb-2 px-4 shadow-sm z-10">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <h1 className="text-xs font-bold tracking-[0.2em] text-stone-400 uppercase mb-1">Come, Follow Me</h1>
-                            <h2 className="text-lg sm:text-xl font-serif font-bold text-stone-800 leading-tight">{WEEK_INFO.title}</h2>
-                            <p className="text-stone-500 text-xs mt-1 mb-4">{WEEK_INFO.dateRange}</p>
-
-                            {/* Main Nav Tabs */}
-                            <div className="flex justify-center space-x-1 sm:space-x-4 mt-4 overflow-x-auto hide-scrollbar pb-2">
-                                <button onClick={() => setActiveTab('devotional')} className={`flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-xl transition-all ${activeTab === 'devotional' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'text-stone-400 hover:text-stone-600'}`}>
-                                    <IconSun className="w-5 h-5" />
-                                    <span className="text-xs sm:text-sm font-medium">Daily</span>
-                                </button>
-                                <button onClick={() => setActiveTab('youth')} className={`flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-xl transition-all ${activeTab === 'youth' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'text-stone-400 hover:text-stone-600'}`}>
-                                    <IconUsers className="w-5 h-5" />
-                                    <span className="text-xs sm:text-sm font-medium">Youth</span>
-                                </button>
-                                <button onClick={() => setActiveTab('songs')} className={`flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-xl transition-all ${activeTab === 'songs' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'text-stone-400 hover:text-stone-600'}`}>
-                                    <IconMusic className="w-5 h-5" />
-                                    <span className="text-xs sm:text-sm font-medium">Music</span>
-                                </button>
-                                <button onClick={() => setActiveTab('study')} className={`flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-xl transition-all ${activeTab === 'study' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'text-stone-400 hover:text-stone-600'}`}>
-                                    <IconBookOpen className="w-5 h-5" />
-                                    <span className="text-xs sm:text-sm font-medium">Study</span>
-                                </button>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Secondary Day Navigation (Horizontal Scroll) - Only show for Daily, Youth, Songs */}
-                    {activeTab !== 'study' && (
-                        <div className="bg-white border-b border-stone-200 py-2 px-4 shadow-sm z-10">
-                            <div className="max-w-4xl mx-auto">
-                                <div className="flex space-x-3 overflow-x-auto hide-scrollbar pb-1 sm:justify-center">
-                                    {DEVOTIONAL_DATA.map((d) => (
-                                        <button
-                                            key={d.id}
-                                            onClick={() => setActiveDayId(d.id)}
-                                            className={`flex-shrink-0 flex flex-col items-center justify-center w-12 h-14 rounded-lg transition-all border ${activeDayId === d.id ? 'bg-stone-800 text-white border-stone-800 shadow-md transform scale-105' : 'bg-white text-stone-500 border-stone-200 hover:border-stone-300'}`}
-                                        >
-                                            <span className="text-[10px] font-bold uppercase">{d.day}</span>
-                                            <span className={`text-lg font-bold leading-none ${activeDayId === d.id ? 'text-amber-400' : 'text-stone-800'}`}>{d.date.split(' ')[1]}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Content Area - Scrollable */}
-                    <main className="flex-1 overflow-y-auto p-4 pb-20">
-                        {activeTab === 'devotional' && renderDevotional()}
-                        {activeTab === 'youth' && renderYouth()}
-                        {activeTab === 'songs' && renderSongs()}
-                        {activeTab === 'study' && renderStudy()}
-                        {renderFooter()}
-                    </main>
-
-                    <Toast message="Copied to Clipboard!" show={showToast} onClose={() => setShowToast(false)} />
-                </div>
-            );
+                row.innerHTML = `
+                    <td class="px-6 py-4 border-r">${item.discipline || ''}</td>
+                    <td class="px-6 py-4 font-semibold text-green-600 border-r">${item.level}</td>
+                    <td class="px-6 py-4 border-r">${roleText}</td>
+                    <td class="px-6 py-4 border-r">${item.knowledge || ''}</td>
+                    <td class="px-6 py-4 border-r">${item.skill || ''}</td>
+                    <td class="px-6 py-4 border-r">${item.trainingSource || ''}</td>
+                    <td class="px-6 py-4 border-r">${item.trainingLink && item.trainingLink !== 'N/A' ? `<a href="${item.trainingLink}" target="_blank" class="text-green-600 hover:underline">Link</a>` : 'N/A'}</td>
+                    <td class="px-6 py-4 border-r">${item.techStack || ''}</td>
+                    <td class="px-6 py-4 border-r">${item.description || ''}</td>
+                    <td class="px-6 py-4">${item.demonstration || ''}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        const displayError = (message) => {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('font-bold'); 
+        };
+
+        const toggleLoading = (isLoading) => {
+            if (isLoading) {
+                generateBtn.disabled = true;
+                btnText.classList.add('hidden');
+                btnLoader.classList.remove('hidden');
+                noResultsDiv.classList.add('hidden');
+                errorContainer.classList.add('hidden');
+                tableWrapper.classList.add('hidden');
+                resultsHeader.classList.add('hidden');
+                mainLoader.classList.remove('hidden');
+            } else {
+                mainLoader.classList.add('hidden');
+                generateBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                if(tableBody.children.length > 0){
+                    tableWrapper.classList.remove('hidden');
+                    resultsHeader.classList.remove('hidden');
+                } else {
+                     errorContainer.classList.remove('hidden');
+                     noResultsDiv.classList.add('hidden');
+                }
+            }
+        };
+
+        copyBtn.addEventListener('click', () => {
+            if (!currentKSAData || currentKSAData.length === 0) return;
+            const headers = ["Discipline", "Level", "Role", "Knowledge", "Skill", "Training Source", "Training Link", "Technical Stack", "Description", "Demonstration"].join("\t");
+            const rows = currentKSAData.map(item => {
+                return [
+                    item.discipline || "", item.level || "", item.formattedRole || item.role,
+                    (item.knowledge || "").replace(/(\r\n|\n|\r)/gm, " "), (item.skill || "").replace(/(\r\n|\n|\r)/gm, " "),
+                    item.trainingSource || "", item.trainingLink || "",
+                    (item.techStack || "").replace(/(\r\n|\n|\r)/gm, " "), (item.description || "").replace(/(\r\n|\n|\r)/gm, " "),
+                    (item.demonstration || "").replace(/(\r\n|\n|\r)/gm, " ")
+                ].join("\t");
+            }).join("\n");
+            navigator.clipboard.writeText(headers + "\n" + rows).then(() => {
+                const originalText = copyBtnText.innerText;
+                copyBtnText.innerText = "Copied to Excel!";
+                copyBtn.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                setTimeout(() => { copyBtnText.innerText = originalText; copyBtn.classList.remove('bg-green-50', 'text-green-700', 'border-green-200'); }, 2000);
+            });
+        });
+
+        generateBtn.addEventListener('click', () => {
+            const ability = abilityInput.value.trim();
+            const ksaType = ksaSelector.value;
+            const apiKey = appPasswordInput.value.trim(); // Using the password field as API Key input
+            
+            if(!apiKey) {
+                errorContainer.classList.remove('hidden');
+                displayError("Please enter your OpenAI API Key.");
+                return;
+            }
+
+            if (ability) {
+                tableBody.innerHTML = ''; 
+                currentKSAData = []; 
+                generateKSA(ability, ksaType, apiKey);
+            }
+        });
+        
+        abilityInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateBtn.click();
+            }
+        });
     </script>
 </body>
 </html>
